@@ -1,0 +1,1 @@
+This repository use [ABC metrics](https://en.wikipedia.org/wiki/ABC_Software_Metric) to evaluates score of go program.
