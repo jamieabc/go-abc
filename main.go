@@ -73,8 +73,7 @@ func listFile(source string) (files []string, err error) {
 			}
 
 			if !info.IsDir() {
-				match, err := filepath.Match("*.go", filepath.Base(path))
-				if !match || err != nil {
+				if isIgnored(path) {
 					return nil
 				}
 
@@ -87,8 +86,7 @@ func listFile(source string) (files []string, err error) {
 			return
 		}
 	} else {
-		match, e := filepath.Match("*.go", filepath.Base(root))
-		if !match || e != nil {
+		if isIgnored(root) {
 			return
 		}
 		files = append(files, root)
@@ -97,12 +95,16 @@ func listFile(source string) (files []string, err error) {
 	return
 }
 
-func analyze(file string) (r report) {
-	match, err := filepath.Match("*_test.go", filepath.Base(file))
-	if match && err == nil {
-		return
+func isIgnored(path string) bool {
+	goMatch, err := filepath.Match("*.go", filepath.Base(path))
+	testMatch, err := filepath.Match("*_test.go", filepath.Base(path))
+	if goMatch && !testMatch && err == nil {
+		return false
 	}
+	return true
+}
 
+func analyze(file string) (r report) {
 	// Create the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
 	node, err := parser.ParseFile(fset, file, nil, 0)
