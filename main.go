@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -10,23 +11,21 @@ import (
 	"path/filepath"
 )
 
+type abc struct {
+	Assignments int `json:"Assignments"`
+	Branches    int `json:"Branches"`
+	Conditions  int `json:"Conditions"`
+}
+
 type report struct {
-	path        string
-	assignments int
-	branches    int
-	conditions  int
-	score       int
+	Path  string `json:"Path"`
+	Score int    `json:"Score"`
+	ABC   abc    `json:"Abc"`
 }
 
 func (r report) String() string {
-	return fmt.Sprintf(
-		"file: %s\n\tassignment: %d\n\tbranch: %d\n\tcondition: %d\n\tscore: %d\n",
-		r.path,
-		r.assignments,
-		r.branches,
-		r.conditions,
-		r.score,
-	)
+	b, _ := json.MarshalIndent(r, "", "\t")
+	return string(b)
 }
 
 func main() {
@@ -113,7 +112,7 @@ func analyze(file string) (r report) {
 	}
 
 	r = report{
-		path: file,
+		Path: file,
 	}
 
 	ast.Inspect(node, func(n ast.Node) bool {
@@ -121,24 +120,24 @@ func analyze(file string) (r report) {
 			ast.Inspect(n, func(n ast.Node) bool {
 				switch n := n.(type) {
 				case *ast.AssignStmt, *ast.IncDecStmt:
-					r.assignments++
+					r.ABC.Assignments++
 				case *ast.CallExpr:
-					r.branches++
+					r.ABC.Branches++
 				case *ast.IfStmt:
 					if n.Else != nil {
-						r.conditions++
+						r.ABC.Conditions++
 					}
 				case *ast.BinaryExpr, *ast.CaseClause:
-					r.conditions++
+					r.ABC.Conditions++
 				}
 				return true
 			})
 
-			a := math.Pow(float64(r.assignments), 2)
-			b := math.Pow(float64(r.branches), 2)
-			c := math.Pow(float64(r.conditions), 2)
+			a := math.Pow(float64(r.ABC.Assignments), 2)
+			b := math.Pow(float64(r.ABC.Branches), 2)
+			c := math.Pow(float64(r.ABC.Conditions), 2)
 
-			r.score = int(math.Sqrt(a + b + c))
+			r.Score = int(math.Sqrt(a + b + c))
 			return false
 		}
 		return true

@@ -52,8 +52,8 @@ func TestMainFixture(t *testing.T) {
 	sout := string(out)
 	assert.Equal(t, nil, err, "wrong error")
 	assert.Contains(t, sout, fixtureFile, "wrong list")
-	assert.Contains(t, sout, "assignment: 1", "wrong assignment")
-	assert.Contains(t, sout, "branch: 2", "wrong branch")
-	assert.Contains(t, sout, "condition: 2", "wrong condition")
-	assert.Contains(t, sout, "score: 3", "wrong score")
+	assert.Contains(t, sout, `"Assignments": 1`, "wrong assignment")
+	assert.Contains(t, sout, `"Branches": 2`, "wrong branch")
+	assert.Contains(t, sout, `"Conditions": 2`, "wrong condition")
+	assert.Contains(t, sout, `"Score": 3`, "wrong Score")
 }
