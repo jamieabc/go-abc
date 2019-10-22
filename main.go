@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -9,24 +8,11 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+
+	"github.com/jamieabc/go-abc/order"
+
+	"github.com/jamieabc/go-abc/report"
 )
-
-type abc struct {
-	Assignments int `json:"Assignments"`
-	Branches    int `json:"Branches"`
-	Conditions  int `json:"Conditions"`
-}
-
-type report struct {
-	Path  string `json:"Path"`
-	Score int    `json:"Score"`
-	ABC   abc    `json:"Abc"`
-}
-
-func (r report) String() string {
-	b, _ := json.MarshalIndent(r, "", "\t")
-	return string(b)
-}
 
 func main() {
 	if 1 == len(os.Args) {
@@ -41,11 +27,13 @@ func main() {
 		return
 	}
 
-	var results []report
+	var reports []report.Report
 	for _, f := range files {
-		results = append(results, analyze(f))
+		reports = append(reports, analyze(f))
 	}
-	fmt.Printf("%s\n", results)
+	byScore := order.NewOrderByScore(reports)
+	byScore.Sort()
+	fmt.Printf("%s\n", byScore.Report())
 }
 
 func usage() {
@@ -104,7 +92,7 @@ func isIgnored(path string) bool {
 	return true
 }
 
-func analyze(file string) (r report) {
+func analyze(file string) (r report.Report) {
 	// Create the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
 	node, err := parser.ParseFile(fset, file, nil, 0)
@@ -113,7 +101,7 @@ func analyze(file string) (r report) {
 		return
 	}
 
-	r = report{
+	r = report.Report{
 		Path: file,
 	}
 
